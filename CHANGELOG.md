@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.1
+
+Corrected creator attribution to Jack. The Cash App identifier remains `$Seajack1`, including its dollar sign.
+
 ## 1.0.0
 
 Initial public release:
