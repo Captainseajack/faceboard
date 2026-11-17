@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="A calm, flexible canvas for sorting faces into connected groups and branches.">
+  <meta name="theme-color" content="#f7f8f3">
+  <title>Faceboard — a little room for connections</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='12' fill='%232b493b'/%3E%3Cpath d='M10 12h20M15 12v14m10-14v14' stroke='%23d9edb5' stroke-width='2'/%3E%3Ccircle cx='15' cy='27' r='3' fill='%23d9edb5'/%3E%3Ccircle cx='25' cy='27' r='3' fill='%23d9edb5'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header class="app-header">
+  <a class="brand" href="#" aria-label="Faceboard home"><span class="brand-mark" data-icon="network"></span><span>faceboard<span class="brand-dot">.</span></span></a>
+  <span class="header-divider"></span>
+  <button id="workspace-name" class="workspace-name" title="Rename workspace">Portrait connections <span data-icon="chevron-down"></span></button>
+  <div class="header-spacer"></div>
+  <span id="save-state" class="save-state" role="status"><span class="status-dot"></span> Saved on this device</span>
+  <a class="button quiet tips-btn" href="https://cash.app/$Seajack1" target="_blank" rel="noopener noreferrer" aria-label="Tips — support Jack on Cash App (opens in a new tab)"><span aria-hidden="true">♡</span> Tips</a>
+  <button class="button quiet export-btn" id="export"><span data-icon="download"></span> Export</button>
+  <button class="button primary" id="add-photos"><span data-icon="plus"></span> Add photos</button>
+</header>
+<div class="app-shell">
+  <aside class="sidebar" aria-label="Workspace navigation">
+    <div class="sidebar-top"><span class="eyebrow">YOUR WORKSPACE</span><button class="icon-button" id="workspace-menu" aria-label="Workspace options" title="Workspace options"><span data-icon="more"></span></button></div>
+    <button class="nav-item active" id="canvas-nav"><span data-icon="network"></span> Connection canvas <span class="nav-arrow">↗</span></button>
+    <button class="nav-item" id="library-nav"><span data-icon="images"></span> Photo tray <span class="count-badge" id="tray-count">0</span></button>
+    <div class="section-heading"><span>GROUPS</span><button class="icon-button" id="add-group-small" aria-label="Add group" title="Add group"><span data-icon="plus"></span></button></div>
+    <div id="group-list" class="group-list"></div>
+    <button class="new-group" id="add-group"><span data-icon="plus"></span> New group</button>
+    <div class="sidebar-bottom">
+      <div class="local-note"><span data-icon="shield"></span><div><strong>Yours, on this device</strong><p>Photos stay in this browser.<br>Export a copy to keep a backup.</p></div></div>
+      <button class="help-link" id="help"><span data-icon="help"></span> A quick guide <span>?</span></button>
+    </div>
+  </aside>
+  <main class="main">
+    <div class="canvas-toolbar">
+      <div><div class="canvas-title">Connection canvas <span class="beta-tag">FREEFORM</span></div><div class="canvas-subtitle">A place to see how everything connects.</div></div>
+      <div class="toolbar-actions"><span id="board-count" class="board-count"></span><span class="toolbar-divider"></span><button class="button compact photo-size-button" id="all-photo-size" title="Resize all photos"><span data-icon="images"></span><span>Photo size</span></button><button class="icon-button" id="undo" aria-label="Undo" title="Undo (Ctrl+Z)"><span data-icon="undo"></span></button><button class="icon-button" id="redo" aria-label="Redo" title="Redo (Ctrl+Shift+Z)"><span data-icon="redo"></span></button><button class="button compact" id="fit"><span data-icon="fit"></span> Fit all</button></div>
+    </div>
+    <div class="canvas-area" id="canvas-area">
+      <div class="canvas-viewport" id="viewport" tabindex="0" aria-label="Connection canvas. Scroll to navigate. Control or Command and scroll to zoom."><div id="sizer"><div id="world"></div></div></div>
+      <div class="canvas-intro" id="canvas-intro"><span class="intro-spark" data-icon="spark"></span><span>Start with a face. Follow a connection.</span><button id="dismiss-intro" aria-label="Dismiss tip">×</button></div>
+      <div class="canvas-footer"><span class="gesture-hint"><span data-icon="hand"></span> Scroll to explore <span class="hint-dot">·</span> Space + drag to pan</span><div class="zoom-control"><button id="zoom-out" aria-label="Zoom out"><span data-icon="minus"></span></button><button id="zoom-value" title="Reset zoom to 100%">100%</button><button id="zoom-in" aria-label="Zoom in"><span data-icon="plus"></span></button><span></span><button id="zoom-fit" aria-label="Fit entire canvas" title="Fit entire canvas"><span data-icon="fit"></span></button></div></div>
+      <div id="tray" class="photo-tray" hidden></div>
+    </div>
+  </main>
+  <aside class="inspector" id="inspector" aria-label="Selection details"></aside>
+</div>
+<div id="toast" role="status" class="toast" hidden></div>
+<dialog id="dialog"><div id="dialog-content"></div></dialog>
+<input type="file" id="photo-input" accept="image/*" multiple hidden>
+<input type="file" id="import-input" accept="application/json,.json" hidden>
+<script src="model.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
