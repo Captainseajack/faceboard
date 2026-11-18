@@ -1,6 +1,15 @@
 const test=require('node:test');
 const assert=require('node:assert/strict');
 const M=require('../dist/model.js');
+test('backup references cannot resolve inherited object properties as photos',()=>{
+ for(const name of ['toString','valueOf','hasOwnProperty','constructor','__proto__']){
+  const d=M.empty(),g=M.group();g.chains[0].items=[{kind:'photo',id:name}];d.groups.push(g);
+  assert.throws(()=>M.validate(d));assert.equal(M.find(d,name),undefined);
+  assert.throws(()=>M.movePhoto(d,name,g.chains[0].id));assert.throws(()=>M.resizePhoto(d,name,200));
+ }
+ const d=M.demo(),first=Object.keys(d.photos)[0];d.groups[0].chains[0].items=[{kind:'photo',id:[first]}];
+ assert.throws(()=>M.validate(d));
+});
 test('individual and global photo sizes survive backup and moving between chains',()=>{
  const d=M.demo(),id=Object.keys(d.photos)[0];M.resizePhoto(d,id,280);
  assert.equal(M.photoDimensions(d.photos[id]).width,280);

@@ -27,6 +27,7 @@ SOFTWARE.
 
 -->
   <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-aXPtC2enEJMyHdN8Pp6T1JOR6L6MLUhkhiX79HE5Ai4=' 'sha256-S5ApFDNow8GGVtg7/amJsdu8xsw5+nzGniOREUrZOA4='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'; worker-src 'none'; font-src 'none'; media-src 'none'">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="description" content="A calm, flexible canvas for sorting faces into connected groups and branches.">
   <meta name="theme-color" content="#f7f8f3">
@@ -97,7 +98,7 @@ SOFTWARE.
   const palette=['#c78b6e','#8c9c68','#819eae','#ad8ba5','#c1a15e','#6c9e8b'];
   function normalizedSize(value){const n=Number(value);if(!Number.isFinite(n))throw Error('Choose a valid photo size.');return Math.max(100,Math.min(360,Math.round(n/10)*10));}
   function photoDimensions(photo,defaultSize=140){const width=normalizedSize(photo.size??defaultSize),imageWidth=width-8,imageHeight=Math.round(imageWidth*120/132);return {width,height:imageHeight+40,imageWidth,imageHeight};}
-  function resizePhoto(data,id,size){if(!data.photos[id])throw Error('Photo not found.');data.photos[id].size=normalizedSize(size);}
+  function resizePhoto(data,id,size){if(!Object.hasOwn(data.photos,id))throw Error('Photo not found.');data.photos[id].size=normalizedSize(size);}
   function resizeAllPhotos(data,size){data.photoSize=normalizedSize(size);Object.values(data.photos).forEach(p=>delete p.size);}
   function chain(title='Main chain',items=[]){return {kind:'chain',id:uid(),title,description:'',items};}
   function node(items=[]){return {kind:'node',id:uid(),title:'New junction',description:'',chains:[chain('Branch 01',items),chain('Branch 02')]};}
@@ -106,12 +107,12 @@ SOFTWARE.
     function visitChain(c,parent,g){callback({entity:c,type:'chain',parent,group:g});c.items.forEach((item,index)=>{if(item.kind==='photo'){callback({entity:data.photos[item.id],type:'photo',chain:c,index,group:g});}else{callback({entity:item,type:'node',chain:c,index,group:g});item.chains.forEach(child=>visitChain(child,item,g));}});}
     data.groups.forEach((g,index)=>{callback({entity:g,type:'group',index,group:g});g.chains.forEach(c=>visitChain(c,g,g));});
   }
-  function find(data,id){let result;walk(data,r=>{if(r.entity?.id===id)result=r;});if(!result&&data.photos[id])result={entity:data.photos[id],type:'photo',chain:null,index:-1,group:null};return result;}
+  function find(data,id){let result;walk(data,r=>{if(r.entity?.id===id)result=r;});if(!result&&Object.hasOwn(data.photos,id))result={entity:data.photos[id],type:'photo',chain:null,index:-1,group:null};return result;}
   function chains(data){const out=[];walk(data,r=>{if(r.type==='chain')out.push(r);});return out;}
   function placed(data){const out=new Set();walk(data,r=>{if(r.type==='photo')out.add(r.entity.id);});return out;}
   function countPhotos(entity){if(entity.kind==='photo')return 1;if(entity.kind==='chain')return entity.items.reduce((n,v)=>n+(v.kind==='photo'?1:countPhotos(v)),0);return entity.chains.reduce((n,c)=>n+countPhotos(c),0);}
   function movePhoto(data,id,chainId,index){
-    const dest=chainId?find(data,chainId):null;if(chainId&&dest?.type!=='chain')throw Error('Choose a valid chain.');if(!data.photos[id])throw Error('Photo not found.');
+    const dest=chainId?find(data,chainId):null;if(chainId&&dest?.type!=='chain')throw Error('Choose a valid chain.');if(!Object.hasOwn(data.photos,id))throw Error('Photo not found.');
     const source=find(data,id);let insert=index??(dest?dest.entity.items.length:0);
     if(source.chain){if(source.chain===dest?.entity&&source.index<insert)insert--;source.chain.items.splice(source.index,1);}
     if(dest){const items=dest.entity.items;const limit=items.at(-1)?.kind==='node'?items.length-1:items.length;items.splice(Math.max(0,Math.min(insert,limit)),0,{kind:'photo',id});}
@@ -137,7 +138,7 @@ SOFTWARE.
     const d={version:1,title:text(input.title,200),groups:[],photos:{},demo:!!input.demo};const ids=new Set();const usedPhotos=new Set();let total=0;
     function id(v){text(v,150);if(!/^[A-Za-z0-9_-]+$/.test(v)||ids.has(v)||['__proto__','prototype','constructor'].includes(v))throw Error('Duplicate or invalid identifier.');ids.add(v);if(++total>20000)throw Error('This board has too many entries.');return v;}
     for(const [key,p]of Object.entries(input.photos)){if(!p||p.id!==key)throw Error('Invalid photo.');const photoId=id(key);const src=text(p.src,30000000);if(!/^data:image\/(jpeg|png|webp|gif|avif|svg\+xml);base64,[A-Za-z0-9+/=]+$/.test(src))throw Error('Backup photos must be embedded images.');d.photos[photoId]={kind:'photo',id:photoId,title:text(p.title,500),description:text(p.description),src,sample:!!p.sample};}
-    function readChain(c,depth){if(depth>100||c?.kind!=='chain'||!Array.isArray(c.items))throw Error('Invalid branch structure.');const out={kind:'chain',id:id(c.id),title:text(c.title,500),description:text(c.description),items:[]};c.items.forEach((it,index)=>{if(it.kind==='photo'){if(!d.photos[it.id]||usedPhotos.has(it.id))throw Error('A photo is missing or appears twice.');usedPhotos.add(it.id);out.items.push({kind:'photo',id:it.id});}else if(it.kind==='node'&&index===c.items.length-1){out.items.push(readParent(it,'node',depth+1));}else throw Error('A junction must be at the end of a chain.');});return out;}
+    function readChain(c,depth){if(depth>100||c?.kind!=='chain'||!Array.isArray(c.items))throw Error('Invalid branch structure.');const out={kind:'chain',id:id(c.id),title:text(c.title,500),description:text(c.description),items:[]};c.items.forEach((it,index)=>{if(it?.kind==='photo'){if(typeof it.id!=='string'||!Object.hasOwn(d.photos,it.id)||usedPhotos.has(it.id))throw Error('A photo is missing or appears twice.');usedPhotos.add(it.id);out.items.push({kind:'photo',id:it.id});}else if(it?.kind==='node'&&index===c.items.length-1){out.items.push(readParent(it,'node',depth+1));}else throw Error('A junction must be at the end of a chain.');});return out;}
     function readParent(p,kind,depth){if(p?.kind!==kind||!Array.isArray(p.chains)||!p.chains.length)throw Error('Invalid group or junction.');const out={kind,id:id(p.id),title:text(p.title,500),description:text(p.description),chains:p.chains.map(c=>readChain(c,depth+1))};if(kind==='group'){if(!/^#[a-fA-F0-9]{6}$/.test(p.color))throw Error('Invalid group color.');out.color=p.color;}return out;}
     if(input.photoSize!==undefined){if(!Number.isInteger(input.photoSize)||input.photoSize<100||input.photoSize>360||input.photoSize%10!==0)throw Error('Invalid default photo size.');d.photoSize=input.photoSize;}
     for(const [key,p]of Object.entries(input.photos)){if(p.size!==undefined){if(!Number.isInteger(p.size)||p.size<100||p.size>360||p.size%10!==0)throw Error('Invalid photo size.');d.photos[key].size=p.size;}}
