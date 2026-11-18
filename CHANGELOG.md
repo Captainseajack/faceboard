@@ -2,9 +2,7 @@
 
 ## 1.0.2
 
-- Updated the optional tip link to Cash App `$Seajack1`.
-- Hardened backup photo-reference validation.
-- Added a restrictive Content Security Policy and a security/privacy guide.
+Security updates and bug fixes.
 
 ## 1.0.1
 
